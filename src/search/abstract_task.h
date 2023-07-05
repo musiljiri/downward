@@ -11,6 +11,8 @@
 #include <utility>
 #include <vector>
 
+using namespace std;
+
 struct FactPair {
     int var;
     int value;
@@ -38,6 +40,47 @@ struct FactPair {
     */
     static const FactPair no_fact;
 };
+
+namespace tasks {
+
+struct ExplicitVariable {
+    int domain_size;
+    string name;
+    vector<string> fact_names;
+    int axiom_layer;
+    int axiom_default_value;
+
+    explicit ExplicitVariable(istream &in);
+
+    ExplicitVariable(int domain_size, string name, vector<string> fact_names, int axiom_layer, int axiom_default_value) :
+        domain_size{domain_size}, name{name}, fact_names{fact_names}, axiom_layer{axiom_layer}, axiom_default_value{axiom_default_value} {}
+};
+
+struct ExplicitEffect {
+    FactPair fact;
+    vector<FactPair> conditions;
+
+    ExplicitEffect(int var, int value, vector<FactPair> &&conditions);
+
+    ExplicitEffect(FactPair fact, vector<FactPair> conditions) :
+        fact{fact}, conditions{conditions} {}
+};
+
+struct ExplicitOperator {
+    vector<FactPair> preconditions;
+    vector<ExplicitEffect> effects;
+    int cost;
+    string name;
+    bool is_an_axiom;
+
+    void read_pre_post(istream &in);
+    ExplicitOperator(istream &in, bool is_an_axiom, bool use_metric);
+
+    ExplicitOperator(vector<FactPair> preconditions, vector<ExplicitEffect> effects, int cost, string name, bool is_an_axiom) :
+        preconditions{preconditions}, effects{effects}, cost{cost}, name{name}, is_an_axiom{is_an_axiom} {}
+};
+
+}
 
 std::ostream &operator<<(std::ostream &os, const FactPair &fact_pair);
 
@@ -73,6 +116,8 @@ public:
         int op_index, int eff_index, int cond_index, bool is_axiom) const = 0;
     virtual FactPair get_operator_effect(
         int op_index, int eff_index, bool is_axiom) const = 0;
+    virtual const tasks::ExplicitOperator &get_operator_or_axiom(
+        int index, bool is_axiom) const = 0;
 
     /*
       Convert an operator index from this task, C (child), into an operator index

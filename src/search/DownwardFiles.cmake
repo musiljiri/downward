@@ -575,6 +575,7 @@ fast_downward_plugin(
     NAME CORE_TASKS
     HELP "Core task transformations"
     SOURCES
+        tasks/axiom_free_task
         tasks/cost_adapted_task
         tasks/delegating_task
         tasks/root_task

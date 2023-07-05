@@ -21,37 +21,6 @@ namespace tasks {
 static const int PRE_FILE_VERSION = 3;
 shared_ptr<AbstractTask> g_root_task = nullptr;
 
-struct ExplicitVariable {
-    int domain_size;
-    string name;
-    vector<string> fact_names;
-    int axiom_layer;
-    int axiom_default_value;
-
-    explicit ExplicitVariable(istream &in);
-};
-
-
-struct ExplicitEffect {
-    FactPair fact;
-    vector<FactPair> conditions;
-
-    ExplicitEffect(int var, int value, vector<FactPair> &&conditions);
-};
-
-
-struct ExplicitOperator {
-    vector<FactPair> preconditions;
-    vector<ExplicitEffect> effects;
-    int cost;
-    string name;
-    bool is_an_axiom;
-
-    void read_pre_post(istream &in);
-    ExplicitOperator(istream &in, bool is_an_axiom, bool use_metric);
-};
-
-
 class RootTask : public AbstractTask {
     vector<ExplicitVariable> variables;
     // TODO: think about using hash sets here.

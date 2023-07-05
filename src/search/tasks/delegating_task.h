@@ -43,6 +43,8 @@ public:
         int op_index, int eff_index, int cond_index, bool is_axiom) const override;
     virtual FactPair get_operator_effect(
         int op_index, int eff_index, bool is_axiom) const override;
+    virtual const ExplicitOperator &get_operator_or_axiom(
+        int index, bool is_axiom) const override;
     virtual int convert_operator_index(
         int index, const AbstractTask *ancestor_task) const final override;
     virtual int convert_operator_index_to_parent(int index) const {

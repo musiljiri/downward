@@ -75,6 +75,11 @@ FactPair DelegatingTask::get_operator_effect(
     return parent->get_operator_effect(op_index, eff_index, is_axiom);
 }
 
+const ExplicitOperator &DelegatingTask::get_operator_or_axiom(
+    int index, bool is_axiom) const {
+    return parent->get_operator_or_axiom(index, is_axiom);
+}
+
 int DelegatingTask::convert_operator_index(
     int index, const AbstractTask *ancestor_task) const {
     if (ancestor_task == this) {
