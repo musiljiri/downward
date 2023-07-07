@@ -13,11 +13,13 @@ namespace tasks {
     const shared_ptr<AbstractTask> &parent)
     : DelegatingTask(parent) {
 
-        parent_action_count = parent->get_num_operators();
+        parent_var_count = parent->get_num_variables();
         get_axiom_layer_count();
         add_new_variables();
         add_new_actions();
         modify_existing_actions();
+        modify_initial_state();
+        modify_goal();
     }
 
 void AxiomFreeTask::get_axiom_layer_count() {
@@ -109,7 +111,7 @@ void AxiomFreeTask::add_new_actions() {
     for (int i = 1; i <= axiom_layer_count; i++) {
         // add stratum action
         vector<ExplicitEffect> stratum_effects;
-        ExplicitEffect effect_done = { parent_action_count + axiom_layer_count + i + 1, 0, vector<FactPair>{ FactPair::no_fact } };
+        ExplicitEffect effect_done = { parent_var_count + axiom_layer_count + i + 1, 0, vector<FactPair>{} };
         stratum_effects.push_back(effect_done);
 
         vector<int> axioms_in_layer = get_axioms_in_layer(i);
@@ -119,21 +121,21 @@ void AxiomFreeTask::add_new_actions() {
 
             if (!value_0_effcond.empty()) {
                 ExplicitEffect derived_to_0_effect = { *new FactPair(axioms_in_layer[j], 0), value_0_effcond };
-                ExplicitEffect new_after_derived_to_0_effect = { *new FactPair(parent_action_count, 0), value_0_effcond };
+                ExplicitEffect new_after_derived_to_0_effect = { *new FactPair(parent_var_count, 0), value_0_effcond };
                 stratum_effects.push_back(derived_to_0_effect);
                 stratum_effects.push_back(new_after_derived_to_0_effect);
             }
             if (!value_1_effcond.empty()) {
                 ExplicitEffect derived_to_1_effect = { *new FactPair(axioms_in_layer[j], 1), value_1_effcond };
-                ExplicitEffect new_after_derived_to_1_effect = { *new FactPair(parent_action_count, 0), value_1_effcond };
+                ExplicitEffect new_after_derived_to_1_effect = { *new FactPair(parent_var_count, 0), value_1_effcond };
                 stratum_effects.push_back(derived_to_1_effect);
                 stratum_effects.push_back(new_after_derived_to_1_effect);
             }
         }
 
         vector<FactPair> stratum_precond;
-        stratum_precond.push_back(*new FactPair(parent_action_count + i, 0));
-        stratum_precond.push_back(*new FactPair(parent_action_count + i + 1, 1));
+        stratum_precond.push_back(*new FactPair(parent_var_count + i, 0));
+        stratum_precond.push_back(*new FactPair(parent_var_count + i + 1, 1));
 
         ExplicitOperator stratum_action = {stratum_precond, stratum_effects, 0, "stratum" + std::to_string(i), false};
         new_actions.push_back(stratum_action);
@@ -141,18 +143,18 @@ void AxiomFreeTask::add_new_actions() {
         // add fixpoint action
         vector<ExplicitEffect> fixpoint_effects;
         vector<FactPair> fixed_effcond;
-        fixed_effcond.push_back(*new FactPair(parent_action_count, 1));
+        fixed_effcond.push_back(*new FactPair(parent_var_count, 1));
 
-        ExplicitEffect fixed_to_0_effect = { *new FactPair(parent_action_count + i + 1, 0), fixed_effcond };
-        ExplicitEffect new_to_1_effect = { parent_action_count, 1,  vector<FactPair>{ FactPair::no_fact } };
-        ExplicitEffect done_to_1_effect = { parent_action_count + axiom_layer_count + i + 1, 1,  vector<FactPair>{ FactPair::no_fact } };
+        ExplicitEffect fixed_to_0_effect = { *new FactPair(parent_var_count + i + 1, 0), fixed_effcond };
+        ExplicitEffect new_to_1_effect = { parent_var_count, 1, vector<FactPair>{} };
+        ExplicitEffect done_to_1_effect = { parent_var_count + axiom_layer_count + i + 1, 1, vector<FactPair>{} };
 
         fixpoint_effects.push_back(fixed_to_0_effect);
         fixpoint_effects.push_back(new_to_1_effect);
         fixpoint_effects.push_back(done_to_1_effect);
 
         vector<FactPair> fixpoint_precond;
-        fixpoint_precond.push_back(*new FactPair(parent_action_count + axiom_layer_count + i + 1, 0));
+        fixpoint_precond.push_back(*new FactPair(parent_var_count + axiom_layer_count + i + 1, 0));
 
         ExplicitOperator fixpoint_action = {fixpoint_precond, fixpoint_effects, 0, "fixpoint" + std::to_string(i), false};
         new_actions.push_back(fixpoint_action);
@@ -235,18 +237,18 @@ void AxiomFreeTask::modify_existing_actions() {
     // modify copied actions
     for (unsigned int i = 0; i < actions.size(); i++) {
         int k = get_max_layer_in_precondition(actions.at(i));
-        actions.at(i).preconditions.push_back(*new FactPair(parent_action_count + k + 1, 0));
+        actions.at(i).preconditions.push_back(*new FactPair(parent_var_count + k + 1, 0));
 
         int m = get_min_layer_in_effect(actions.at(i));
         for (; m <= axiom_layer_count; m++) {
-            ExplicitEffect fixed_to_1_effect = { *new FactPair(parent_action_count + m + 1, 1), vector<FactPair>{ FactPair::no_fact } };
+            ExplicitEffect fixed_to_1_effect = { *new FactPair(parent_var_count + m + 1, 1), vector<FactPair>{} };
             actions.at(i).effects.push_back(fixed_to_1_effect);
-            ExplicitEffect done_to_1_effect = { *new FactPair(parent_action_count + axiom_layer_count + m + 1, 1), vector<FactPair>{ FactPair::no_fact } };
+            ExplicitEffect done_to_1_effect = { *new FactPair(parent_var_count + axiom_layer_count + m + 1, 1), vector<FactPair>{} };
             actions.at(i).effects.push_back(done_to_1_effect);
 
             vector<int> axioms = get_axioms_in_layer(m);
             for (unsigned int j = 0; j < axioms.size(); j++) {
-                ExplicitEffect axiom_to_default_effect = { *new FactPair(axioms.at(j), parent->get_variable_default_axiom_value(axioms.at(j))), vector<FactPair>{ FactPair::no_fact } };
+                ExplicitEffect axiom_to_default_effect = { *new FactPair(axioms.at(j), parent->get_variable_default_axiom_value(axioms.at(j))), vector<FactPair>{} };
                 actions.at(i).effects.push_back(axiom_to_default_effect);
             }
         }
@@ -256,14 +258,166 @@ void AxiomFreeTask::modify_existing_actions() {
     actions.insert(actions.end(), new_actions.begin(), new_actions.end());
 }
 
+void AxiomFreeTask::modify_initial_state() {
 
-/*int AxiomFreeTask::get_operator_cost(int index, bool is_axiom) const {
-    return 1;
-}*/
+    initial_state_values = parent->get_initial_state_values();
 
-/*int AxiomFreeTask::convert_operator_index_to_parent(int index) const {
+    for (int i = 0; i < axiom_layer_count * 2 + 2; i++) {
+        if (i == 1) {
+            initial_state_values.push_back(0);
+        } else {
+            initial_state_values.push_back(1);
+        }
+    }
+}
+
+void AxiomFreeTask::modify_goal() {
+
+    int k = 0;
+
+    for (int i = 0; i < parent->get_num_goals(); i++) {
+        goals.push_back(parent->get_goal_fact(i));
+        if (parent->get_variable_axiom_layer(parent->get_goal_fact(i).var) + 1 > k) {
+            k = parent->get_variable_axiom_layer(parent->get_goal_fact(i).var) + 1;
+        }
+    }
+
+    goals.push_back(*new FactPair(parent_var_count + k + 1, 0));
+}
+
+int AxiomFreeTask::get_num_variables() const {
+    return variables.size();
+}
+
+string AxiomFreeTask::get_variable_name(int var) const {
+    return parent->get_variable_name(var);
+}
+
+int AxiomFreeTask::get_variable_domain_size(int var) const {
+    return get_variable(var).domain_size;
+}
+
+int AxiomFreeTask::get_variable_axiom_layer(int var) const {
     return -1;
-}*/
+}
+
+int AxiomFreeTask::get_variable_default_axiom_value(int var) const {
+    return get_variable(var).axiom_default_value;
+}
+
+string AxiomFreeTask::get_fact_name(const FactPair &fact) const {
+    assert(utils::in_bounds(fact.value, get_variable(fact.var).fact_names));
+    return get_variable(fact.var).fact_names[fact.value];
+}
+
+bool AxiomFreeTask::are_facts_mutex(const FactPair &fact1, const FactPair &fact2) const {
+    if (fact1.var >= parent_var_count || fact2.var >= parent_var_count) {
+        return false;
+    }
+    return parent->are_facts_mutex(fact1, fact2);
+}
+
+int AxiomFreeTask::get_operator_cost(int index, bool is_axiom) const {
+    assert(!is_axiom);
+    return get_operator(index).cost;
+}
+
+string AxiomFreeTask::get_operator_name(int index, bool is_axiom) const {
+    assert(!is_axiom);
+    return get_operator(index).name;
+}
+
+int AxiomFreeTask::get_num_operators() const {
+    return actions.size();
+}
+
+int AxiomFreeTask::get_num_operator_preconditions(int index, bool is_axiom) const {
+    assert(!is_axiom);
+    return get_operator(index).preconditions.size();
+}
+
+FactPair AxiomFreeTask::get_operator_precondition(int op_index, int fact_index, bool is_axiom) const {
+    assert(!is_axiom);
+    const ExplicitOperator &op = get_operator(op_index);
+    assert(utils::in_bounds(fact_index, op.preconditions));
+    return op.preconditions[fact_index];
+}
+
+int AxiomFreeTask::get_num_operator_effects(int op_index, bool is_axiom) const {
+    assert(!is_axiom);
+    return get_operator(op_index).effects.size();
+}
+
+int AxiomFreeTask::get_num_operator_effect_conditions(int op_index, int eff_index, bool is_axiom) const {
+    assert(!is_axiom);
+    return get_effect(op_index, eff_index).conditions.size();
+}
+
+FactPair AxiomFreeTask::get_operator_effect_condition(int op_index, int eff_index, int cond_index, bool is_axiom) const {
+    assert(!is_axiom);
+    const ExplicitEffect &effect = get_effect(op_index, eff_index);
+    assert(utils::in_bounds(cond_index, effect.conditions));
+    return effect.conditions[cond_index];
+}
+
+FactPair AxiomFreeTask::get_operator_effect(int op_index, int eff_index, bool is_axiom) const {
+    assert(!is_axiom);
+    return get_effect(op_index, eff_index).fact;
+}
+
+int AxiomFreeTask::convert_operator_index_to_parent(int index) const {
+    if (index >= parent->get_num_operators()) {
+        return -1;
+    }
+    return index;
+}
+
+int AxiomFreeTask::get_num_axioms() const {
+    return 0;
+}
+
+int AxiomFreeTask::get_num_goals() const {
+    return goals.size();
+}
+
+FactPair AxiomFreeTask::get_goal_fact(int index) const {
+    assert(utils::in_bounds(index, goals));
+    return goals[index];
+}
+
+vector<int> AxiomFreeTask::get_initial_state_values() const {
+    return initial_state_values;
+}
+
+void AxiomFreeTask::convert_state_values_from_parent(vector<int> &values) const {
+    vector<int> new_values = values;
+
+    for (int i = 0; i < axiom_layer_count * 2 + 2; i++) {
+        if (i == 0) {
+            new_values.push_back(1);
+        } else {
+            new_values.push_back(0);
+        }
+    }
+
+    values = new_values;
+}
+
+const ExplicitVariable &AxiomFreeTask::get_variable(int var) const {
+    assert(utils::in_bounds(var, variables));
+    return variables[var];
+}
+
+const ExplicitOperator &AxiomFreeTask::get_operator(int index) const {
+    assert(utils::in_bounds(index, actions));
+    return actions[index];
+}
+
+const ExplicitEffect &AxiomFreeTask::get_effect(int op_id, int effect_id) const {
+    const ExplicitOperator &op = get_operator(op_id);
+    assert(utils::in_bounds(effect_id, op.effects));
+    return op.effects[effect_id];
+}
 
 class AxiomFreeTaskFeature : public plugins::TypedFeature<AbstractTask, AxiomFreeTask> {
 public:
