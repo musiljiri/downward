@@ -290,7 +290,7 @@ int AxiomFreeTask::get_num_variables() const {
 }
 
 string AxiomFreeTask::get_variable_name(int var) const {
-    return parent->get_variable_name(var);
+    return get_variable(var).name;
 }
 
 int AxiomFreeTask::get_variable_domain_size(int var) const {
@@ -312,6 +312,10 @@ string AxiomFreeTask::get_fact_name(const FactPair &fact) const {
 
 bool AxiomFreeTask::are_facts_mutex(const FactPair &fact1, const FactPair &fact2) const {
     if (fact1.var >= parent_var_count || fact2.var >= parent_var_count) {
+        if (fact1.var == fact2.var) {
+            // Same variable: mutex iff different value.
+            return fact1.value != fact2.value;
+        }
         return false;
     }
     return parent->are_facts_mutex(fact1, fact2);
