@@ -73,6 +73,7 @@ public:
     int get_bound() {return bound;}
     PlanManager &get_plan_manager() {return plan_manager;}
     std::string get_description() {return description;}
+    static inline bool remove_axioms = false;
 
     /* The following three methods should become functions as they
        do not require access to private/protected class members. */

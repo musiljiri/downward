@@ -82,7 +82,7 @@ const ExplicitOperator &DelegatingTask::get_operator_or_axiom(
 
 int DelegatingTask::convert_operator_index(
     int index, const AbstractTask *ancestor_task) const {
-    if (ancestor_task == this) {
+    if (ancestor_task == this || typeid(*this) == typeid(*ancestor_task)) {
         return index;
     }
     int parent_index = convert_operator_index_to_parent(index);
@@ -107,7 +107,7 @@ vector<int> DelegatingTask::get_initial_state_values() const {
 
 void DelegatingTask::convert_ancestor_state_values(
     vector<int> &values, const AbstractTask *ancestor_task) const {
-    if (this == ancestor_task) {
+    if (this == ancestor_task || typeid(*this) == typeid(*ancestor_task)) {
         return;
     }
     parent->convert_ancestor_state_values(values, ancestor_task);

@@ -16,7 +16,9 @@ namespace tasks {
         parent_var_count = parent->get_num_variables();
         get_axiom_layer_count();
         add_new_variables();
-        add_new_actions();
+        if (axiom_layer_count != 0) { // do not modify tasks without axioms
+            add_new_actions();
+        }
         modify_existing_actions();
         modify_initial_state();
         modify_goal();
@@ -47,7 +49,7 @@ void AxiomFreeTask::add_new_variables() {
         vector<string> var_fixed_fact_names;
         var_fixed_fact_names.push_back("Atom fixed" + std::to_string(i));
         var_fixed_fact_names.push_back("NegatedAtom fixed" + std::to_string(i));
-        ExplicitVariable var_fixed = { 2, "fixed" + std::to_string(i), var_fixed_fact_names, -1, 1 };
+        ExplicitVariable var_fixed = { 2, "fixed" + std::to_string(i), var_fixed_fact_names, -1, i == 0 ? 0 : 1 };
         new_variables.push_back(var_fixed);
     }
 
@@ -70,6 +72,10 @@ void AxiomFreeTask::add_new_variables() {
         ExplicitVariable variable_copy = {parent->get_variable_domain_size(i), parent->get_variable_name(i),
                                           fact_names, -1, parent->get_variable_default_axiom_value(i)};
         variables.push_back(variable_copy);
+    }
+
+    if (axiom_layer_count == 0) { // do not modify tasks without axioms
+        return;
     }
 
     // append new variables to (copied and modified) existing variables
@@ -234,6 +240,10 @@ void AxiomFreeTask::modify_existing_actions() {
         actions.push_back(action_copy);
     }
 
+    if (axiom_layer_count == 0) { // do not modify tasks without axioms
+        return;
+    }
+
     // modify copied actions
     for (unsigned int i = 0; i < actions.size(); i++) {
         int k = get_max_layer_in_precondition(actions.at(i));
@@ -262,6 +272,10 @@ void AxiomFreeTask::modify_initial_state() {
 
     initial_state_values = parent->get_initial_state_values();
 
+    if (axiom_layer_count == 0) { // do not modify tasks without axioms
+        return;
+    }
+
     for (int i = 0; i < axiom_layer_count * 2 + 2; i++) {
         if (i == 1) {
             initial_state_values.push_back(0);
@@ -280,6 +294,10 @@ void AxiomFreeTask::modify_goal() {
         if (parent->get_variable_axiom_layer(parent->get_goal_fact(i).var) + 1 > k) {
             k = parent->get_variable_axiom_layer(parent->get_goal_fact(i).var) + 1;
         }
+    }
+
+    if (axiom_layer_count == 0) { // do not modify tasks without axioms
+        return;
     }
 
     goals.push_back(*new FactPair(parent_var_count + k + 1, 0));
@@ -302,6 +320,7 @@ int AxiomFreeTask::get_variable_axiom_layer(int var) const {
 }
 
 int AxiomFreeTask::get_variable_default_axiom_value(int var) const {
+    assert(false);
     return get_variable(var).axiom_default_value;
 }
 
@@ -394,6 +413,11 @@ vector<int> AxiomFreeTask::get_initial_state_values() const {
 }
 
 void AxiomFreeTask::convert_state_values_from_parent(vector<int> &values) const {
+
+    if (axiom_layer_count == 0) { // do not modify tasks without axioms
+        return;
+    }
+
     vector<int> new_values = values;
 
     for (int i = 0; i < axiom_layer_count * 2 + 2; i++) {
