@@ -40,7 +40,7 @@ public:
     // returns axioms in given layer
     vector<int> get_axioms_in_layer(int layer);
     // returns the precondition and all effect conditions for changing axiom to value
-    vector<FactPair> collect_axiom_conditions(int axiom, int value);
+    vector<vector<FactPair>> collect_axiom_conditions(int axiom, int value);
     // adds stratum and fixpoint action
     void add_new_actions();
     // computes k = maximum layer of a derived variable that appears in the precondition of the action

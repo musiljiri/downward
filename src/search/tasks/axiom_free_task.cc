@@ -93,23 +93,28 @@ vector<int> AxiomFreeTask::get_axioms_in_layer(int layer) {
     return axioms_in_layer;
 }
 
-vector<FactPair> AxiomFreeTask::collect_axiom_conditions(int axiom, int value) {
+vector<vector<FactPair>> AxiomFreeTask::collect_axiom_conditions(int axiom, int value) {
 
-    vector<FactPair> conds;
+    vector<vector<FactPair>> all_conds;
+
     for (int i = 0; i < parent->get_num_axioms(); i++) {
+        assert (parent->get_num_operator_effects(i, true) == 1);
         FactPair axiom_effect = parent->get_operator_effect(i, 0, true);
 
         if (axiom == axiom_effect.var && value == axiom_effect.value) {
+            assert (parent->get_num_operator_preconditions(i, true) == 1);
+            vector<FactPair> conds;
             conds.push_back(parent->get_operator_precondition(i, 0, true));
 
             int effcond_count = parent->get_num_operator_effect_conditions(i, 0, true);
             for (int j = 0; j < effcond_count; j++) {
                 conds.push_back(parent->get_operator_effect_condition(i, 0, j, true));
             }
+            all_conds.push_back(conds);
         }
     }
 
-    return conds;
+    return all_conds;
 }
 
 void AxiomFreeTask::add_new_actions() {
@@ -122,20 +127,24 @@ void AxiomFreeTask::add_new_actions() {
 
         vector<int> axioms_in_layer = get_axioms_in_layer(i);
         for (unsigned int j = 0; j < axioms_in_layer.size(); j++) {
-            vector<FactPair> value_0_effcond = collect_axiom_conditions(axioms_in_layer[j], 0);
-            vector<FactPair> value_1_effcond = collect_axiom_conditions(axioms_in_layer[j], 1);
+            vector<vector<FactPair>> value_0_effcond = collect_axiom_conditions(axioms_in_layer[j], 0);
+            vector<vector<FactPair>> value_1_effcond = collect_axiom_conditions(axioms_in_layer[j], 1);
 
             if (!value_0_effcond.empty()) {
-                ExplicitEffect derived_to_0_effect = { *new FactPair(axioms_in_layer[j], 0), value_0_effcond };
-                ExplicitEffect new_after_derived_to_0_effect = { *new FactPair(parent_var_count, 0), value_0_effcond };
-                stratum_effects.push_back(derived_to_0_effect);
-                stratum_effects.push_back(new_after_derived_to_0_effect);
+                for (unsigned int k = 0; k < value_0_effcond.size(); k++) {
+                    ExplicitEffect derived_to_0_effect = { *new FactPair(axioms_in_layer[j], 0), value_0_effcond.at(k) };
+                    ExplicitEffect new_after_derived_to_0_effect = { *new FactPair(parent_var_count, 0), value_0_effcond.at(k) };
+                    stratum_effects.push_back(derived_to_0_effect);
+                    stratum_effects.push_back(new_after_derived_to_0_effect);
+                }
             }
             if (!value_1_effcond.empty()) {
-                ExplicitEffect derived_to_1_effect = { *new FactPair(axioms_in_layer[j], 1), value_1_effcond };
-                ExplicitEffect new_after_derived_to_1_effect = { *new FactPair(parent_var_count, 0), value_1_effcond };
-                stratum_effects.push_back(derived_to_1_effect);
-                stratum_effects.push_back(new_after_derived_to_1_effect);
+                for (unsigned int k = 0; k < value_1_effcond.size(); k++) {
+                    ExplicitEffect derived_to_1_effect = { *new FactPair(axioms_in_layer[j], 1), value_1_effcond.at(k) };
+                    ExplicitEffect new_after_derived_to_1_effect = { *new FactPair(parent_var_count, 0), value_1_effcond.at(k) };
+                    stratum_effects.push_back(derived_to_1_effect);
+                    stratum_effects.push_back(new_after_derived_to_1_effect);
+                }
             }
         }
 
