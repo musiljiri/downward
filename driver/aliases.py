@@ -146,7 +146,7 @@ ALIASES["lama-first-h-transform"] = [
     """lazy_greedy([hff,hlm],preferred=[hff,hlm],reopen_closed=false)))"""]
 
 ALIASES["lama-first-full-transform"] = [
-    "--remove-axioms --search",
+    "--remove-axioms", "--search",
     "let(hlm, landmark_sum(lm_factory=lm_reasonable_orders_hps(lm_rhw()),transform=remove_axioms(),pref=false),"
     "let(hff, ff(transform=remove_axioms()),"
     """lazy_greedy([hff,hlm],preferred=[hff,hlm],reopen_closed=false)))"""]
