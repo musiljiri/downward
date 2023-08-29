@@ -130,7 +130,7 @@ void AxiomFreeTask::add_new_actions() {
             vector<vector<FactPair>> value_0_effcond = collect_axiom_conditions(axioms_in_layer[j], 0);
             vector<vector<FactPair>> value_1_effcond = collect_axiom_conditions(axioms_in_layer[j], 1);
 
-            if (!value_0_effcond.empty()) {
+            if (parent->get_variable_default_axiom_value(axioms_in_layer[j]) == 1 && !value_0_effcond.empty()) {
                 for (unsigned int k = 0; k < value_0_effcond.size(); k++) {
                     ExplicitEffect derived_to_0_effect = { *new FactPair(axioms_in_layer[j], 0), value_0_effcond.at(k) };
                     ExplicitEffect new_after_derived_to_0_effect = { *new FactPair(parent_var_count, 0), value_0_effcond.at(k) };
@@ -138,7 +138,7 @@ void AxiomFreeTask::add_new_actions() {
                     stratum_effects.push_back(new_after_derived_to_0_effect);
                 }
             }
-            if (!value_1_effcond.empty()) {
+            if (parent->get_variable_default_axiom_value(axioms_in_layer[j]) == 0 && !value_1_effcond.empty()) {
                 for (unsigned int k = 0; k < value_1_effcond.size(); k++) {
                     ExplicitEffect derived_to_1_effect = { *new FactPair(axioms_in_layer[j], 1), value_1_effcond.at(k) };
                     ExplicitEffect new_after_derived_to_1_effect = { *new FactPair(parent_var_count, 0), value_1_effcond.at(k) };
@@ -279,7 +279,10 @@ void AxiomFreeTask::modify_existing_actions() {
 
 void AxiomFreeTask::modify_initial_state() {
 
-    initial_state_values = parent->get_initial_state_values();
+    initial_state_values.resize(parent->get_num_variables(),0);
+    for (int i = 0; i < parent->get_num_variables(); i++) {
+        initial_state_values.at(i) = parent->get_variable_default_axiom_value(i);
+    }
 
     if (axiom_layer_count == 0) { // do not modify tasks without axioms
         return;
