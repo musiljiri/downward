@@ -176,13 +176,21 @@ void AxiomFreeTask::add_new_actions() {
     }
 }
 
-int AxiomFreeTask::get_max_layer_in_precondition(ExplicitOperator action) {
+int AxiomFreeTask::get_max_layer_in_precond_and_effcond(ExplicitOperator action) {
 
     int k = 0;
 
     for (unsigned int i = 0; i < action.preconditions.size(); i++) {
         if (parent->get_variable_axiom_layer(action.preconditions.at(i).var) + 1 > k) {
             k = parent->get_variable_axiom_layer(action.preconditions.at(i).var) + 1;
+        }
+    }
+
+    for (unsigned int i = 0; i < action.effects.size(); i++) {
+        for (unsigned int j = 0; j < action.effects.at(i).conditions.size(); j++) {
+            if (parent->get_variable_axiom_layer(action.effects.at(i).conditions.at(j).var) + 1 > k) {
+                k = parent->get_variable_axiom_layer(action.effects.at(i).conditions.at(j).var) + 1;
+            }
         }
     }
 
@@ -255,7 +263,7 @@ void AxiomFreeTask::modify_existing_actions() {
 
     // modify copied actions
     for (unsigned int i = 0; i < actions.size(); i++) {
-        int k = get_max_layer_in_precondition(actions.at(i));
+        int k = get_max_layer_in_precond_and_effcond(actions.at(i));
         actions.at(i).preconditions.push_back(*new FactPair(parent_var_count + k + 1, 0));
 
         int m = get_min_layer_in_effect(actions.at(i));

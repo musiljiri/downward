@@ -43,8 +43,8 @@ public:
     vector<vector<FactPair>> collect_axiom_conditions(int axiom, int value);
     // adds stratum and fixpoint action
     void add_new_actions();
-    // computes k = maximum layer of a derived variable that appears in the precondition of the action
-    int get_max_layer_in_precondition(ExplicitOperator action);
+    // computes k = maximum layer of a derived variable that appears in the precondition (and effect conditions) of the action
+    int get_max_layer_in_precond_and_effcond(ExplicitOperator action);
     // computes m = minimum layer of a derived variable whose axiom condition (body) is modified by the action
     int get_min_layer_in_effect(ExplicitOperator action);
     // modifies all original existing actions
