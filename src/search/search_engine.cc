@@ -82,6 +82,7 @@ const Plan &SearchEngine::get_plan() const {
 void SearchEngine::set_plan(const Plan &p) {
     solution_found = true;
     plan = p;
+    utils::g_log << "Plan length with extra actions: " << plan.size() << " step(s)." << endl;
     for (unsigned int i = 0; i < plan.size(); i++) {
         string opName = task_proxy.get_operators().operator[](plan.at(i).get_index()).get_name();
         if (opName.find("stratum") == 0 ||
