@@ -408,6 +408,12 @@ FactPair AxiomFreeTask::get_operator_effect(int op_index, int eff_index, bool is
     return get_effect(op_index, eff_index).fact;
 }
 
+const ExplicitOperator &AxiomFreeTask::get_operator_or_axiom(int index, bool is_axiom) const {
+    assert(!is_axiom);
+    assert(utils::in_bounds(index, actions));
+    return actions[index];
+}
+
 int AxiomFreeTask::convert_operator_index_to_parent(int index) const {
     if (index >= parent->get_num_operators()) {
         return -1;

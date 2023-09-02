@@ -71,6 +71,7 @@ public:
     int get_num_operator_effect_conditions(int op_index, int eff_index, bool is_axiom) const override;
     FactPair get_operator_effect_condition(int op_index, int eff_index, int cond_index, bool is_axiom) const override;
     FactPair get_operator_effect(int op_index, int eff_index, bool is_axiom) const override;
+    const ExplicitOperator &get_operator_or_axiom(int index, bool is_axiom) const override;
     int convert_operator_index_to_parent(int index) const override;
 
     int get_num_axioms() const override;
