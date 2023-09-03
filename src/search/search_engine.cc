@@ -61,6 +61,36 @@ SearchEngine::SearchEngine(const plugins::Options &opts)
     }
     bound = opts.get<int>("bound");
     task_properties::print_variable_statistics(task_proxy);
+
+    int facts_in_actions = 0;
+    for (int i = 0; i < task->get_num_operators(); i++) {
+        tasks::ExplicitOperator op = task->get_operator_or_axiom(i, false);
+        facts_in_actions += task->get_num_operator_preconditions(i, false) + task->get_num_operator_effects(i, false);
+        for (int j = 0; j < task->get_num_operator_effects(i, false); j++) {
+            facts_in_actions += task->get_num_operator_effect_conditions(i, j, false);
+        }
+    }
+
+    if (!remove_axioms) {
+        for (int i = 0; i < tasks::g_root_task->get_num_axioms(); i++) {
+            tasks::ExplicitOperator op = tasks::g_root_task->get_operator_or_axiom(i, true);
+            facts_in_actions += tasks::g_root_task->get_num_operator_preconditions(i, true) + tasks::g_root_task->get_num_operator_effects(i, true);
+            for (int j = 0; j < tasks::g_root_task->get_num_operator_effects(i, true); j++) {
+                facts_in_actions += tasks::g_root_task->get_num_operator_effect_conditions(i, j, true);
+            }
+        }
+    }
+
+    int layers = -1;
+    for (int i = 0; i < tasks::g_root_task->get_num_variables(); i++) {
+        if (tasks::g_root_task->get_variable_axiom_layer(i) > layers) {
+            layers = tasks::g_root_task->get_variable_axiom_layer(i);
+        }
+    }
+    layers = layers + 1;
+
+    utils::g_log << "Axiom layer count: " << layers << endl;
+    utils::g_log << "Facts in actions: " << facts_in_actions << endl;
 }
 
 SearchEngine::~SearchEngine() {
@@ -83,47 +113,6 @@ void SearchEngine::set_plan(const Plan &p) {
     solution_found = true;
     plan = p;
 
-    int facts_in_actions_and_axioms = 0;
-    for (int i = 0; i < tasks::g_root_task->get_num_operators(); i++) {
-        tasks::ExplicitOperator op = tasks::g_root_task->get_operator_or_axiom(i, false);
-        facts_in_actions_and_axioms += tasks::g_root_task->get_num_operator_preconditions(i, false) + tasks::g_root_task->get_num_operator_effects(i, false);
-        for (int j = 0; j < tasks::g_root_task->get_num_operator_effects(i, false); j++) {
-            facts_in_actions_and_axioms += tasks::g_root_task->get_num_operator_effect_conditions(i, j, false);
-        }
-    }
-
-    for (int i = 0; i < tasks::g_root_task->get_num_axioms(); i++) {
-        tasks::ExplicitOperator op = tasks::g_root_task->get_operator_or_axiom(i, true);
-        facts_in_actions_and_axioms += tasks::g_root_task->get_num_operator_preconditions(i, true) + tasks::g_root_task->get_num_operator_effects(i, true);
-        for (int j = 0; j < tasks::g_root_task->get_num_operator_effects(i, true); j++) {
-            facts_in_actions_and_axioms += tasks::g_root_task->get_num_operator_effect_conditions(i, j, true);
-        }
-    }
-
-    int facts_in_actions_with_extra_actions = 0;
-    if (remove_axioms) {
-        for (int i = 0; i < task->get_num_operators(); i++) {
-            tasks::ExplicitOperator op = task->get_operator_or_axiom(i, false);
-            facts_in_actions_with_extra_actions += task->get_num_operator_preconditions(i, false) + task->get_num_operator_effects(i, false);
-            for (int j = 0; j < task->get_num_operator_effects(i, false); j++) {
-                facts_in_actions_with_extra_actions += task->get_num_operator_effect_conditions(i, j, false);
-            }
-        }
-    } else {
-        facts_in_actions_with_extra_actions = facts_in_actions_and_axioms;
-    }
-
-    int layers = -1;
-    for (int i = 0; i < tasks::g_root_task->get_num_variables(); i++) {
-        if (tasks::g_root_task->get_variable_axiom_layer(i) > layers) {
-            layers = tasks::g_root_task->get_variable_axiom_layer(i);
-        }
-    }
-    layers = layers + 1;
-
-    utils::g_log << "Facts in actions and axioms: " << facts_in_actions_and_axioms << endl;
-    utils::g_log << "Facts in actions with extra actions: " << facts_in_actions_with_extra_actions << endl;
-    utils::g_log << "Axiom layer count: " << layers << endl;
     utils::g_log << "Plan length with extra actions: " << plan.size() << " step(s)." << endl;
     for (unsigned int i = 0; i < plan.size(); i++) {
         string opName = task_proxy.get_operators().operator[](plan.at(i).get_index()).get_name();
