@@ -93,6 +93,8 @@ static shared_ptr<SearchEngine> parse_cmd_line_aux(const vector<string> &args) {
         bool is_last = (i == args.size() - 1);
         if (arg == "--remove-axioms") {
             SearchEngine::remove_axioms = true;
+        } else if (arg == "--remove-easy-axioms") {
+            SearchEngine::remove_easy_axioms = true;
         } else if (arg == "--search") {
             if (engine)
                 input_error("multiple --search arguments defined");

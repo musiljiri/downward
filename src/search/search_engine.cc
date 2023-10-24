@@ -9,6 +9,7 @@
 #include "task_utils/task_properties.h"
 #include "tasks/root_task.h"
 #include "tasks/axiom_free_task.h"
+#include "tasks/easy_axiom_free_task.h"
 #include "utils/countdown_timer.h"
 #include "utils/rng_options.h"
 #include "utils/system.h"
@@ -45,7 +46,7 @@ SearchEngine::SearchEngine(const plugins::Options &opts)
     : description(opts.get_unparsed_config()),
       status(IN_PROGRESS),
       solution_found(false),
-      task(remove_axioms ? make_shared<tasks::AxiomFreeTask>(tasks::g_root_task) : tasks::g_root_task),
+      task(remove_axioms ? make_shared<tasks::AxiomFreeTask>(tasks::g_root_task) : remove_easy_axioms ? make_shared<tasks::EasyAxiomFreeTask>(tasks::g_root_task) : tasks::g_root_task),
       task_proxy(*task),
       log(utils::get_log_from_options(opts)),
       state_registry(task_proxy),

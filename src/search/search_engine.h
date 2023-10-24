@@ -74,6 +74,7 @@ public:
     PlanManager &get_plan_manager() {return plan_manager;}
     std::string get_description() {return description;}
     static inline bool remove_axioms = false;
+    static inline bool remove_easy_axioms = false;
 
     /* The following three methods should become functions as they
        do not require access to private/protected class members. */

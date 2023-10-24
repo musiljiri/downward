@@ -576,6 +576,7 @@ fast_downward_plugin(
     HELP "Core task transformations"
     SOURCES
         tasks/axiom_free_task
+        tasks/easy_axiom_free_task
         tasks/cost_adapted_task
         tasks/delegating_task
         tasks/root_task
